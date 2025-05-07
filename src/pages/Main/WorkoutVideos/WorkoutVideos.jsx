@@ -12,7 +12,7 @@ import {
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import LoadingSpinner from "../../../Components/LoadingSpinner";
 import Swal from "sweetalert2";
-
+import ReactPlayer from 'react-player'
 const WorkoutVideos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({});
@@ -75,16 +75,13 @@ const WorkoutVideos = () => {
   const columns = [
     {
       title: "Thumbnail",
-      dataIndex: "thumbnail", // This should match the original key in the data object
-      key: "thumbnail",
-      render: (image) => (
+      dataIndex: "video", // This should match the original key in the data object
+      key: "video",
+      render: (video) => (
         <div className="flex items-center justify-center">
-          <img
-            src={import.meta.env.VITE_BASE_URL + image}
-            onError={(e) => (e.target.src = defaultThumb)}
-            alt="badge"
-            className="size-12 rounded-md object-fill"
-          />
+  
+<ReactPlayer width={180} height={100} controls={true} url={video} />
+        
         </div>
       ),
     },

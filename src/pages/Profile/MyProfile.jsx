@@ -75,7 +75,7 @@ const MyProfile = () => {
                       <img
                         src={
                           user?.image
-                            ? `${import.meta.env.VITE_BASE_URL}${user?.image}`
+                            ? `${import.meta.env.VITE_BASE_URL_IMAGE}${user?.image}`
                             : ""
                         }
                         alt="avatar"

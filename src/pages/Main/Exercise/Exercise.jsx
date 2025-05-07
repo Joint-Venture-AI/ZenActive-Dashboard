@@ -44,7 +44,7 @@ const Exercise = () => {
           {/* {console.log(import.meta.env.VITE_BASE_URL + image)} */}
           <img
             src={
-              image ? `${import.meta.env.VITE_BASE_URL}${image}` : defaultImage
+              image ? `${import.meta.env.VITE_BASE_URL_IMAGE}${image}` : defaultImage
             }
             alt="badge"
             onError={(e) => (e.target.src = defaultImage)}

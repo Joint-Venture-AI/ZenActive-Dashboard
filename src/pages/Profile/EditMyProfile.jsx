@@ -108,7 +108,7 @@ const EditMyProfile = () => {
                     <img
                       src={
                         preview ||
-                        `${import.meta.env.VITE_BASE_URL}${user?.image}`
+                        `${import.meta.env.VITE_BASE_URL_IMAGE}${user?.image}`
                       }
                       alt="Profile"
                       className="h-28 w-28 rounded-full border-4 border-black object-cover"

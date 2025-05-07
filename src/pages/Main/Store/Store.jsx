@@ -75,7 +75,7 @@ const Store = () => {
       render: (image) => (
         <div className="flex items-center justify-center">
           <img
-            src={import.meta.env.VITE_BASE_URL + image}
+            src={import.meta.env.VITE_BASE_URL_IMAGE + image}
             onError={(e) => (e.target.src = defaultBadge)}
             alt="badge"
             className="w- h-10 rounded-full object-contain"

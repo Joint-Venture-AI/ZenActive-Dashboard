@@ -155,7 +155,7 @@ const Header = () => {
         <div className="flex items-center gap-4">
           <div>
             <img
-              src={import.meta.env.VITE_BASE_URL + user?.image}
+              src={import.meta.env.VITE_BASE_URL_IMAGE + user?.image}
               alt="profile avatar"
               className="rounded-full h-[42px] w-[42px]"
               onError={(e) => (e.target.src = defaultAvatar)}

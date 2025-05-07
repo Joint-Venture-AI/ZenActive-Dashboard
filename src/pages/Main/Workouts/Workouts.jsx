@@ -42,7 +42,7 @@ const Workouts = () => {
       render: (image) => (
         <div className="flex items-center justify-center">
           <img
-            src={import.meta.env.VITE_BASE_URL + image}
+            src={import.meta.env.VITE_BASE_URL_IMAGE + image}
             onError={(e) => (e.target.src = workoutImg)}
             alt="badge"
             className="size-12 rounded-md object-fill"

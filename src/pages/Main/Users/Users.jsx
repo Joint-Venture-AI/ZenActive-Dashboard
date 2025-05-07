@@ -94,7 +94,7 @@ const Users = () => {
       userImage: (
         <div className="flex items-center justify-center">
           <img
-            src={user.image || "https://via.placeholder.com/40"} // Use placeholder if no image
+            src={import.meta.env.VITE_BASE_URL_IMAGE+user.image || "https://via.placeholder.com/40"} // Use placeholder if no image
             onError={(e) => (e.target.src = defaultImage)}
             alt="User"
             className="w-10 h-10 rounded-full object-cover"
