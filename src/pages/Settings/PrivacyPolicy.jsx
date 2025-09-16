@@ -7,7 +7,8 @@ import parse from "html-react-parser";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-  const { data: privacy } = useGetPrivacyQuery()
+  const { data: privacy,error } = useGetPrivacyQuery()
+  console.log(error)
   const handleBackButtonClick = () => {
     navigate(-1); // This takes the user back to the previous page
   };
