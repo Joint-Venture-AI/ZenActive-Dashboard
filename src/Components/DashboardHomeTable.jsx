@@ -72,10 +72,12 @@ const DashboardHomeTable = () => {
   const data =
     recentTransactions?.data?.map((transaction, index) => ({
       key: index,
-      transIs: transaction.purchaseId,
-      name: transaction.userId.name.firstName,
-      subscription: transaction.packageName,
-      amount: `$${transaction.packagePrice}`,
+      transIs:   transaction?.originalTransactionId ||transaction?.
+purchaseToken 
+,
+      name: transaction.userId.name?.firstName,
+      subscription: transaction?.productId,
+      amount: `$${transaction?.price}`,
       date: moment(transaction.purchaseDate).format("DD MMM YYYY"),
       ...transaction,
     })) || [];
