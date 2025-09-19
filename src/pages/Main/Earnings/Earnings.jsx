@@ -106,10 +106,10 @@ const Earnings = () => {
   const data =
     recentTransactions?.data?.map((transaction, index) => ({
       key: index,
-      transIs: transaction.purchaseId,
+      transIs: transaction.originalTransactionId || transaction.purchaseToken,
       name: transaction.userId.name.firstName,
-      subscription: transaction.packageName,
-      amount: `$${transaction.packagePrice}`,
+      subscription: transaction.productId,
+      amount: `$${transaction.price}`,
       date: moment(transaction.purchaseDate).format("DD MMM YYYY"),
       ...transaction,
     })) || [];
