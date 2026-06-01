@@ -64,12 +64,6 @@ const EditWorkout = () => {
     fileInputRef.current.click();
   };
 
-  // Remove selected image
-  const handleRemoveImage = () => {
-    setFile(null);
-    setPreview(null);
-  };
-
   // Logic for multi select input
 //   const { data: workouts } =  useGetAllExerciseQuery(null);
 

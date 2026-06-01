@@ -42,7 +42,8 @@ const AddWorkoutVideo = () => {
       if (response.success) {
         message.success("Video added successfully!");
         form.resetFields(); // Reset form
-        setFile(null); // Clear file
+        setVideoFile(null); // Clear video file
+        setImageFile(null); // Clear image file
       }
     } catch (error) {
       message.error(error.data?.message || "Failed to add video.");

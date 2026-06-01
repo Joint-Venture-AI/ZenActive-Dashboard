@@ -11,22 +11,11 @@ import {
 import LoadingSpinner from "../../../Components/LoadingSpinner";
 
 const AddWorkoutPlan = () => {
-  // const [file, setFile] = useState(null);
-  // const [preview, setPreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null); // Hidden file input reference
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [createWorkoutPlan, { isLoading }] = useCreateWorkoutPlanMutation();
-
-  // Handle file selection
-  // const handleFileChange = (event) => {
-  //   const selectedFile = event.target.files[0];
-  //   if (selectedFile) {
-  //     setFile(selectedFile);
-  //     setPreview(URL.createObjectURL(selectedFile)); // Show image preview
-  //   }
-  // };
 
   // Handle Image Upload
   const handleImageChange = (event) => {
@@ -36,17 +25,6 @@ const AddWorkoutPlan = () => {
     } else {
       alert("You can only upload image files!");
     }
-  };
-
-  // Trigger file input on button click
-  const handleUploadClick = () => {
-    fileInputRef.current.click();
-  };
-
-  // Remove selected image
-  const handleRemoveImage = () => {
-    setFile(null);
-    setPreview(null);
   };
 
   const onFinish = async (values) => {

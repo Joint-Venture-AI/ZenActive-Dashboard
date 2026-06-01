@@ -16,29 +16,13 @@ import LoadingSpinner from "../../../Components/LoadingSpinner";
 const EditBadge = () => {
   const [form] = Form.useForm();
   const [file, setFile] = useState(null);
-  // const [preview, setPreview] = useState(null);
   const [imageFileName, setImageFileName] = useState(null);
 
   const fileInputRef = useRef(null);
   const { badgeId } = useParams();
   const { data: badge } = useGetSingleBadgeQuery(badgeId);
   const [editBadge, { isLoading: editLoading }] = useEditBadgeMutation();
-
-  // Set the initial preview image when data loads
-  // useEffect(() => {
-  //   if (badge?.data?.image) {
-  //     setPreview(badge.data.image);
-  //   }
-  // }, [badge]);
-
-  // // Handle Image Selection and Preview Update
-  // const handleFileChange = (event) => {
-  //   const selectedFile = event.target.files[0];
-  //   if (selectedFile) {
-  //     setFile(selectedFile);
-  //     setPreview(URL.createObjectURL(selectedFile)); // Show new image preview
-  //   }
-  // };
+  const [deleteBadge, { isLoading: deleteLoading }] = useDeleteBadgeMutation();
 
   // Handle Image Upload
   const handleImageChange = (event) => {
@@ -54,12 +38,6 @@ const EditBadge = () => {
   // Trigger file input on button click
   const handleUploadClick = () => {
     fileInputRef.current.click();
-  };
-
-  // Remove selected image
-  const handleRemoveImage = () => {
-    setFile(null);
-    setPreview(null);
   };
 
   useEffect(() => {

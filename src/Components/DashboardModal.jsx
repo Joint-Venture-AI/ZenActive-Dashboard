@@ -34,8 +34,6 @@ const DashboardModal = ({
         {closeIcon !== false && (
           <button
             onClick={handleCancel}
-            type="primary"
-            danger
             className="absolute top-0 right-0 text-[#174C6B] bg-[#C1E8FF] shadow-inner px-2.5 py-2 rounded-none rounded-bl-xl rounded-tr-md"
           >
             <IoMdClose size={23} />

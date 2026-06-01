@@ -3,6 +3,9 @@ import exlamIcon from "../../../assets/images/exclamation-circle.png";
 import { Link } from "react-router-dom";
 
 const Support = () => {
+  const showModal = (data) => {
+    console.log(data);
+  };
    const columns = [
       {
         title: "#SL",

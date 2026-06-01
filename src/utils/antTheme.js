@@ -1,5 +1,3 @@
-import { DatePicker } from "antd";
-
 export const mainTheme = {
   token: {
     colorPrimary: "#00C38A",

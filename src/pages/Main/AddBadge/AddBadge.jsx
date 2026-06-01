@@ -1,52 +1,29 @@
 import { useNavigate } from "react-router-dom";
 import React, { useRef, useState } from "react";
-import { Form, Input, Button, Select, Space, Spin } from "antd";
-import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
-const { Option } = Select;
+import { Form, Input, Space } from "antd";
 import { FaAngleLeft } from "react-icons/fa6";
-import { UploadOutlined } from "@ant-design/icons";
-import { message, Upload } from "antd";
+import { message } from "antd";
 import { CiCamera } from "react-icons/ci";
 import { useCreateBadgeMutation } from "../../../redux/features/badge/badgeApi";
 import LoadingSpinner from "../../../Components/LoadingSpinner";
 
 const AddBadge = () => {
-  const [file, setFile] = useState(null);
-  // const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
   const [form] = Form.useForm();
   const [createBadge, { isLoading }] = useCreateBadgeMutation();
   const navigate = useNavigate();
 
-  // Handle Image Selection and Preview Update
-  // const handleFileChange = (event) => {
-  //   const selectedFile = event.target.files[0];
-  //   if (selectedFile) {
-  //     setFile(selectedFile);
-  //     setPreview(URL.createObjectURL(selectedFile)); // Show new image preview
-  //   }
-  // };
-
   // Handle Image Upload
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file && file.type.startsWith("image/")) {
       setImageFile(file);
+      setPreview(URL.createObjectURL(file));
     } else {
       alert("You can only upload image files!");
     }
-  };
-
-  // Trigger file input on button click
-  const handleUploadClick = () => {
-    fileInputRef.current.click();
-  };
-
-  // Remove selected image
-  const handleRemoveImage = () => {
-    setFile(null);
-    setPreview(null);
   };
 
   const onFinish = async (values) => {

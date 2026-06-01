@@ -21,7 +21,7 @@ const AboutUs = () => {
               <section className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">1. Acceptance of Terms</h3>
                 <p className="text-sm text-gray-600">
-                  By using [Gym Studio Name] and its Trainer Review Platform (the "Platform"), you agree to these Terms and Conditions. If you do not agree, you may not use the Platform.
+                  By using [Gym Studio Name] and its Trainer Review Platform (the &quot;Platform&quot;), you agree to these Terms and Conditions. If you do not agree, you may not use the Platform.
                 </p>
               </section>
 
@@ -52,7 +52,7 @@ const AboutUs = () => {
               <section className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">5. Cancellation and Refunds</h3>
                 <ul className="list-disc list-inside text-sm text-gray-600">
-                  <li>Bookings may be canceled based on the studio's policy (e.g., 24 hours before a session).</li>
+                  <li>Bookings may be canceled based on the studio&apos;s policy (e.g., 24 hours before a session).</li>
                   <li>Refunds are processed according to the Refund Policy.</li>
                 </ul>
               </section>

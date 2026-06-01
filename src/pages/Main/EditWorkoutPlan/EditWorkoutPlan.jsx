@@ -41,12 +41,6 @@ const EditWorkoutPlan = () => {
     fileInputRef.current.click();
   };
 
-  // Remove selected image
-  const handleRemoveImage = () => {
-    setFile(null);
-    setPreview(null);
-  };
-
   const onFinish = async (values) => {
     const formattedData = {
       ...values,

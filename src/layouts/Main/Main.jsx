@@ -20,15 +20,17 @@ const Main = () => {
       <div className="hidden lg:flex">
         <Sidebar />
       </div>
-      <div className="flex-1 lg:pl-[326px] bg-[#F2F5F7]">
+      <div className="flex-1 lg:pl-[290px] bg-[#F2F5F7]">
         <div
-          className={`w-full z-10 transition-all ${
+          className={`w-full z-10 transition-all sticky top-0 ${
             isScrolled
-              ? "sticky top-0 bg-white shadow-md p-0"
-              : "sticky top-0 bg-transparent p-[24px] lg:pl-0"
+              ? "bg-white shadow-md"
+              : "bg-transparent"
           }`}
         >
-          <Header />
+          <div className="p-[24px] lg:pl-0">
+            <Header />
+          </div>
         </div>
         <div className="p-[24px] pt-0.5">
           <PrivateProtectedRoute>
