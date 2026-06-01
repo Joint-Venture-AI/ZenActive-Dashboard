@@ -43,13 +43,13 @@ const AddWorkoutPlan = () => {
 
       const res = await createWorkoutPlan(formData).unwrap();
       if (res.success) {
-        message.success("Workout plan created successfully!");
+        message.success("Workout plan created successfully with AI!");
         form.resetFields();
         navigate(-1);
       }
     } catch (err) {
       console.log(err);
-      message.error("Failed to create workout plan.");
+      message.error(err?.data?.message || "Failed to create workout plan.");
     }
   };
 
@@ -143,51 +143,6 @@ const AddWorkoutPlan = () => {
                       className="h-10 border-[#79CDFF] text-base font-semibold text-[#525252]"
                     />
                   </Form.Item>
-
-                  {/* Image with preview */}
-                  {/* <Form.Item
-                    label={
-                      <span className="text-lg font-semibold text-[#2D2D2D]">
-                        Upload Image
-                      </span>
-                    }
-                    name="image"
-                    className="responsive-form-item"
-                  >
-                    <div className="relative w-[440px]">
-                      {preview ? (
-                        <div className="relative">
-                          <img
-                            src={preview}
-                            alt="Preview"
-                            className="w-full h-40 object-contain border border-[#79CDFF] rounded-md"
-                          />
-                          <IoCloseCircle
-                            className="absolute top-2 right-2 text-red-600 text-2xl cursor-pointer"
-                            onClick={handleRemoveImage}
-                          />
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleUploadClick}
-                          className="w-full h-10 border border-[#79CDFF] flex items-center justify-between px-4 rounded-md cursor-pointer"
-                        >
-                          <span className="text-base font-semibold text-[#525252]">
-                            Select an image
-                          </span>
-                          <CiCamera size={25} color="#174C6B" />
-                        </button>
-                      )}
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={handleFileChange}
-                      />
-                    </div>
-                  </Form.Item> */}
 
                   {/* image */}
                   <Form.Item
