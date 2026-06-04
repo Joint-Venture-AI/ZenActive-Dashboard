@@ -7,6 +7,7 @@ import exlamIcon from "../../../assets/images/exclamation-circle.png";
 import defaultImage from "../../../assets/images/fit.png";
 import { FaPlus } from "react-icons/fa6";
 import { useGetAllExerciseQuery } from "../../../redux/features/exercise/exerciseApi";
+import { getImageUrl } from "../../../utils/imageUrl";
 import { MdEdit } from "react-icons/md";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
@@ -41,11 +42,8 @@ const Exercise = () => {
       key: "image",
       render: (image) => (
         <div className="flex items-center justify-center">
-          {/* {console.log(import.meta.env.VITE_BASE_URL + image)} */}
           <img
-            src={
-              image ? `${import.meta.env.VITE_BASE_URL_IMAGE}${image}` : defaultImage
-            }
+            src={getImageUrl(image)}
             alt="badge"
             onError={(e) => (e.target.src = defaultImage)}
             className="size-12 rounded-md object-fill"

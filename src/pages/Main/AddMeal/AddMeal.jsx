@@ -7,11 +7,13 @@ import { message, Upload } from "antd";
 import { CiCamera } from "react-icons/ci";
 import { useCreateMealMutation } from "../../../redux/features/meal/mealApi";
 import LoadingSpinner from "../../../Components/LoadingSpinner";
+import { compressImage } from "../../../utils/imageCompression";
 
 const AddMeal = () => {
   const [form] = Form.useForm();
   //   const [file, setFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [createMeal, { isLoading }] = useCreateMealMutation();
 
   // Handle Image Upload
@@ -43,24 +45,31 @@ const AddMeal = () => {
       return;
     }
 
-    // Restructure the form data to include nutritionalInfo
-    const formattedData = {
-      ...values, // Spread other fields
-      amount: Number(values.amount),
-      nutritionalInfo: {
-        calories: Number(values.calories),
-        carbs: Number(values.carbs),
-        proteins: Number(values.proteins),
-        fats: Number(values.fats),
-      },
-    };
-
-    // Create FormData
-    const formData = new FormData();
-    formData.append("image", imageFile); // Append image
-    formData.append("data", JSON.stringify(formattedData)); // Convert text fields to JSON
+    setIsUploading(true);
+    const loadingMessage = message.loading("Creating meal... Please wait.", 0);
 
     try {
+      // Restructure the form data to include nutritionalInfo
+      const formattedData = {
+        ...values, // Spread other fields
+        amount: Number(values.amount),
+        nutritionalInfo: {
+          calories: Number(values.calories),
+          carbs: Number(values.carbs),
+          proteins: Number(values.proteins),
+          fats: Number(values.fats),
+        },
+      };
+
+      // Create FormData
+      const formData = new FormData();
+      
+      // Compress image before upload
+      const compressedImage = await compressImage(imageFile);
+      formData.append("image", compressedImage); 
+      
+      formData.append("data", JSON.stringify(formattedData)); // Convert text fields to JSON
+
       const response = await createMeal(formData).unwrap();
       if (response.success) {
         message.success("Meal created successfully!");
@@ -70,6 +79,9 @@ const AddMeal = () => {
       }
     } catch (error) {
       message.error(error.data?.message || "Failed to create meal.");
+    } finally {
+      loadingMessage();
+      setIsUploading(false);
     }
   };
 
@@ -134,6 +146,7 @@ const AddMeal = () => {
                     <Input
                       type="text"
                       placeholder="Enter Meal Name"
+                      disabled={isUploading}
                       style={{
                         height: "40px",
                         border: "1px solid #79CDFF",
@@ -169,13 +182,14 @@ const AddMeal = () => {
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}
+                        disabled={isUploading}
                         className="hidden"
                         style={{ display: "none" }}
                         id="imageUpload"
                       />
                       <label
                         htmlFor="imageUpload"
-                        className="cursor-pointer w-full flex justify-between items-center"
+                        className={`cursor-pointer w-full flex justify-between items-center ${isUploading ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
                         <span className="text-[#525252] font-semibold">
                           {imageFile ? imageFile.name : "Select an image"}
@@ -204,6 +218,7 @@ const AddMeal = () => {
                   >
                     <Select
                       placeholder="Select Type"
+                      disabled={isUploading}
                       style={{
                         height: "40px",
                         fontWeight: 600,
@@ -244,6 +259,7 @@ const AddMeal = () => {
                   >
                     <Select
                       placeholder="Select Category"
+                      disabled={isUploading}
                       style={{
                         height: "40px",
                         fontWeight: 600,
@@ -286,6 +302,7 @@ const AddMeal = () => {
                       mode="multiple"
                       size={"middle"}
                       placeholder="Please select"
+                      disabled={isUploading}
                       //   defaultValue={["Vegetarian"]}
                       //   onChange={handleMultiSelectChange}
                       style={{
@@ -316,6 +333,7 @@ const AddMeal = () => {
                     <Input
                       type="number"
                       placeholder="Add Amount"
+                      disabled={isUploading}
                       style={{
                         height: "40px",
                         border: "1px solid #79CDFF",
@@ -360,6 +378,7 @@ const AddMeal = () => {
                       <Input
                         type="number"
                         placeholder="Add Calories"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -392,6 +411,7 @@ const AddMeal = () => {
                       <Input
                         type="number"
                         placeholder="Add Carbs"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -424,6 +444,7 @@ const AddMeal = () => {
                       <Input
                         type="number"
                         placeholder="Add Proteins"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -456,6 +477,7 @@ const AddMeal = () => {
                       <Input
                         type="number"
                         placeholder="Add Fats"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -475,9 +497,13 @@ const AddMeal = () => {
               {/* Submit Button */}
               <Form.Item>
                 <div className="p-4 mt-10 text-center mx-auto flex items-center justify-center">
-                  <button className="w-[500px] bg-[#174C6B] text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md ">
+                  <button 
+                    type="submit"
+                    disabled={isUploading}
+                    className={`w-[500px] bg-[#174C6B] text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md ${isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  >
                     <span className="text-white font-semibold">
-                      {isLoading ? <LoadingSpinner color="white" /> : "Create"}
+                      {isUploading ? <LoadingSpinner color="white" /> : "Create"}
                     </span>
                   </button>
                 </div>

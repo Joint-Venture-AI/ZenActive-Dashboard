@@ -8,10 +8,12 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import LoadingSpinner from "../../../Components/LoadingSpinner";
 import { message } from "antd";
+import { compressImage } from "../../../utils/imageCompression";
 
 const AddWorkoutVideoNormal = () => {
   const [videoFile, setVideoFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [name, setName] = useState("");
   const [createWorkoutVideo, { isLoading }] = useCreateWorkoutVideoMutation();
   const navigate = useNavigate();
@@ -181,39 +183,38 @@ const AddWorkoutVideoNormal = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Check if video needs conversion but hasn't been converted yet
-    if (needsConversion && !convertedVideo) {
-      alert("Please convert the video to 720p before submitting");
-      return;
-    }
-
-    const formData = new FormData();
-
-    if (imageFile) {
-      formData.append("image", imageFile);
-    }
-
-    // Use the converted video if available, otherwise use the original
-    const videoToUpload = convertedVideo || videoFile;
-    if (videoToUpload) {
-      formData.append("media", videoToUpload);
-    }
-
-    formData.append("data", JSON.stringify({ name: name }));
+    setIsUploading(true);
+    const loadingMessage = message.loading("Uploading video... Please wait.", 0);
 
     try {
-      //   console.log("Submitting form with video:", videoToUpload);
+      const formData = new FormData();
+
+      if (imageFile) {
+        const compressedImage = await compressImage(imageFile);
+        formData.append("image", compressedImage);
+      }
+
+      // Use the converted video if available, otherwise use the original
+      const videoToUpload = convertedVideo || videoFile;
+      if (videoToUpload) {
+        formData.append("media", videoToUpload);
+      }
+
+      formData.append("data", JSON.stringify({ name: name }));
+
       const response = await createWorkoutVideo(formData).unwrap();
-      //   console.log("Response from add video:", response);
-      //   alert("Video added successfully!");
 
       if (response.success) {
         // Reset form
+        message.success(response.message || "Video added successfully");
         navigate(-1);
-        message.success(response.message || "Video addeded successfuly");
       }
     } catch (error) {
-      alert(error.data?.message || "Failed to add video.");
+      console.error(error);
+      message.error(error.data?.message || "Failed to add video.");
+    } finally {
+      loadingMessage();
+      setIsUploading(false);
     }
   };
 
@@ -244,12 +245,13 @@ const AddWorkoutVideoNormal = () => {
                       type="file"
                       accept="video/*"
                       onChange={handleVideoChange}
+                      disabled={isUploading}
                       className="hidden"
                       id="videoUpload"
                     />
                     <label
                       htmlFor="videoUpload"
-                      className="cursor-pointer w-full flex justify-between items-center"
+                      className={`cursor-pointer w-full flex justify-between items-center ${isUploading ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
                       <span className="text-[#525252] font-semibold">
                         {videoFile ? videoFile.name : "Select a video"}
@@ -267,13 +269,12 @@ const AddWorkoutVideoNormal = () => {
                       </p>
                       {needsConversion ? (
                         <p className="text-amber-600">
-                          This video is larger than 720p, please upload a video
-                          in 720p or lower
+                          Note: High-resolution videos (above 720p) take much longer to upload. 
+                          For faster performance, we recommend using 720p.
                         </p>
                       ) : (
-                        // <p className="text-amber-600">This video is larger than 720p and needs to be converted</p>
                         <p className="text-green-600">
-                          This video is in good shape
+                          Video resolution is optimal for fast upload.
                         </p>
                       )}
                     </div>
@@ -321,12 +322,13 @@ const AddWorkoutVideoNormal = () => {
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
+                      disabled={isUploading}
                       className="hidden"
                       id="imageUpload"
                     />
                     <label
                       htmlFor="imageUpload"
-                      className="cursor-pointer w-full flex justify-between items-center"
+                      className={`cursor-pointer w-full flex justify-between items-center ${isUploading ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
                       <span className="text-[#525252] font-semibold">
                         {imageFile ? imageFile.name : "Select an image"}
@@ -345,6 +347,7 @@ const AddWorkoutVideoNormal = () => {
                 <input
                   type="text"
                   value={name}
+                  disabled={isUploading}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter video title"
                   className="lg:w-[482px] w-full border border-[#79CDFF]  px-2 py-3 rounded-md text-lg font-semibold text-[#525252] placeholder:text-[#525252]"
@@ -358,13 +361,12 @@ const AddWorkoutVideoNormal = () => {
                   className="w-[500px] bg-[#174C6B] disabled:bg-[#174C6B]/50 disabled:cursor-not-allowed text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md"
                   disabled={
                     !videoFile ||
-                    (needsConversion && !convertedVideo) ||
-                    isConverting ||
+                    isUploading ||
                     !name
                   }
                 >
                   <span className="text-white font-semibold">
-                    {isLoading ? <LoadingSpinner color="white" /> : "Upload"}
+                    {isUploading ? <LoadingSpinner color="white" /> : "Upload"}
                   </span>
                 </button>
               </div>

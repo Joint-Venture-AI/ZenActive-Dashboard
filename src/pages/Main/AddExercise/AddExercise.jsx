@@ -7,18 +7,113 @@ import { CiCamera } from "react-icons/ci";
 import { useCreateExerciseMutation } from "../../../redux/features/exercise/exerciseApi";
 import { IoVideocamOutline } from "react-icons/io5";
 import LoadingSpinner from "../../../Components/LoadingSpinner";
+import { compressImage } from "../../../utils/imageCompression";
+import axios from "axios";
 
 const AddExercise = () => {
   const [form] = Form.useForm();
   const [videoFile, setVideoFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [videoResolution, setVideoResolution] = useState(null);
   const [needsConversion, setNeedsConversion] = useState(false);
-  // const [isPremium, setIsPremium] = useState(false)
-
+  
   const navigate = useNavigate();
 
-  const [createExercise, { isLoading }] = useCreateExerciseMutation();
+  const [createExercise] = useCreateExerciseMutation();
+
+  const fetchCloudinarySignature = async () => {
+    // Get token from auth state or local storage to include in headers
+    const token = localStorage.getItem("token");
+    
+    console.log("Fetching signature from:", `${import.meta.env.VITE_BASE_URL}/exercise/signature?folder=exercises`);
+    
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/exercise/signature?folder=exercises`,
+        {
+          headers: {
+              Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      console.log("Full signature response:", response);
+      if (!response.data) {
+          throw new Error("No data in signature response");
+      }
+      return response.data;
+    } catch (error) {
+        console.error("Signature fetch error:", error.response || error);
+        throw error;
+    }
+  };
+
+  const uploadToCloudinaryDirect = async (file, folder, resourceType) => {
+    const sigResult = await fetchCloudinarySignature();
+    const { timestamp, signature, cloudName, apiKey, folder: signedFolder } = sigResult.data;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", signedFolder);
+    formData.append("timestamp", timestamp);
+    formData.append("signature", signature);
+    formData.append("api_key", apiKey);
+
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType === "image" ? "image" : "video"}/upload`,
+      formData
+    );
+    return response.data;
+  };
+  
+  const onFinish = async (values) => {
+    setIsUploading(true);
+    const loadingMessage = message.loading("Uploading media to cloud... Please wait.", 0);
+    
+    try {
+      let videoUrl = null;
+      let imageUrl = null;
+      let videoId = null;
+
+      // Direct Uploads
+      if (imageFile) {
+        const compressedImage = await compressImage(imageFile);
+        const imgRes = await uploadToCloudinaryDirect(compressedImage, "exercises/images", "image");
+        imageUrl = imgRes.secure_url;
+      }
+      
+      if (videoFile) {
+        const vidRes = await uploadToCloudinaryDirect(videoFile, "exercises/videos", "video");
+        videoUrl = vidRes.secure_url;
+        videoId = vidRes.public_id;
+      }
+
+      const formattedData = {
+        ...values,
+        points: Number(values.points),
+        duration: Number(values.duration),
+        reps: Number(values.reps),
+        sets: Number(values.sets),
+        restTime: Number(values.restTime),
+        image: imageUrl,
+        video: videoUrl,
+        videoId: videoId
+      };
+
+      const response = await createExercise(formattedData).unwrap();
+      if (response.success) {
+        message.success("Exercise added successfully!");
+        form.resetFields();
+        navigate(-1);
+      }
+    } catch (error) {
+      console.log(error);
+      message.error("Failed to add exercise.");
+    } finally {
+      loadingMessage(); // Dismiss the loading message
+      setIsUploading(false);
+    }
+  };
 
   // Check video resolution
   const checkVideoResolution = (file) => {
@@ -54,10 +149,6 @@ const AddExercise = () => {
     // Determine if conversion is needed (if resolution is higher than 720p)
     const needsConversion = height > 720;
     setNeedsConversion(needsConversion);
-
-    // console.log(
-    //   `Video resolution: ${width}x${height}, needs conversion: ${needsConversion}`
-    // );
   };
 
   // Handle Image Upload
@@ -67,39 +158,6 @@ const AddExercise = () => {
       setImageFile(file);
     } else {
       alert("You can only upload image files!");
-    }
-  };
-
-  const onFinish = async (values) => {
-    const formattedData = {
-      ...values,
-      points: Number(values.points),
-      duration: Number(values.duration),
-      reps: Number(values.reps),
-      sets: Number(values.sets),
-      restTime: Number(values.restTime),
-    };
-    // Create FormData
-    const formData = new FormData();
-    if (imageFile) {
-      formData.append("image", imageFile);
-    }
-    if (videoFile) {
-      formData.append("media", videoFile);
-    }
-    formData.append("data", JSON.stringify(formattedData)); // Convert text fields to JSON
-
-    try {
-      const response = await createExercise(formData).unwrap();
-      if (response.success) {
-        message.success("exercise added successfully!");
-        form.resetFields(); // Reset form
-        // setFile(null); // Clear file
-        navigate(-1);
-      }
-    } catch (error) {
-      console.log(error);
-      message.error(error.data?.message || "Failed to add exercise.");
     }
   };
 
@@ -126,7 +184,6 @@ const AddExercise = () => {
               form={form}
               layout="vertical"
               onFinish={onFinish}
-              // style={{ maxWidth: 600, margin: '0 auto' }}
             >
               {/* Section 1 */}
               <Space
@@ -167,6 +224,7 @@ const AddExercise = () => {
                     <Input
                       type="text"
                       placeholder="Enter Exercise Name"
+                      disabled={isUploading}
                       style={{
                         height: "40px",
                         border: "1px solid #79CDFF",
@@ -205,6 +263,7 @@ const AddExercise = () => {
                     <Input
                       type="text"
                       placeholder="About Exercise"
+                      disabled={isUploading}
                       style={{
                         height: "40px",
                         border: "1px solid #79CDFF",
@@ -243,6 +302,7 @@ const AddExercise = () => {
                     <Input
                       type="text"
                       placeholder="Enter Exercise Description"
+                      disabled={isUploading}
                       style={{
                         height: "40px",
                         border: "1px solid #79CDFF",
@@ -280,13 +340,14 @@ const AddExercise = () => {
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}
+                        disabled={isUploading}
                         className="hidden"
                         style={{ display: "none" }}
                         id="imageUpload"
                       />
                       <label
                         htmlFor="imageUpload"
-                        className="cursor-pointer w-full flex justify-between items-center"
+                        className={`cursor-pointer w-full flex justify-between items-center ${isUploading ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
                         <span className="text-[#525252] font-semibold">
                           {imageFile ? imageFile.name : "Select an image"}
@@ -320,13 +381,14 @@ const AddExercise = () => {
                         type="file"
                         accept="video/*"
                         onChange={handleVideoChange}
+                        disabled={isUploading}
                         className="hidden"
                         id="videoUpload"
                         style={{ display: "none" }}
                       />
                       <label
                         htmlFor="videoUpload"
-                        className="cursor-pointer w-full flex justify-between items-center"
+                        className={`cursor-pointer w-full flex justify-between items-center ${isUploading ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
                         <span className="text-[#525252] font-semibold">
                           {videoFile ? videoFile.name : "Select a video"}
@@ -344,13 +406,12 @@ const AddExercise = () => {
                       </p>
                       {needsConversion ? (
                         <p className="text-amber-600">
-                          This video is larger than 720p, please upload a video
-                          in 720p or lower
+                          Note: High-resolution videos (above 720p) take much longer to upload. 
+                          For faster performance, we recommend using 720p.
                         </p>
                       ) : (
-                        // <p className="text-amber-600">This video is larger than 720p and needs to be converted</p>
                         <p className="text-green-600">
-                          This video is in good shape
+                          Video resolution is optimal for fast upload.
                         </p>
                       )}
                     </div>
@@ -391,6 +452,7 @@ const AddExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set duration"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -429,6 +491,7 @@ const AddExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set reward point"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -464,6 +527,7 @@ const AddExercise = () => {
                       <Input
                         type="text"
                         placeholder="Set goal"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -499,6 +563,7 @@ const AddExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set Reps"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -534,6 +599,7 @@ const AddExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set sets"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -569,6 +635,7 @@ const AddExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set rest time"
+                        disabled={isUploading}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -601,7 +668,7 @@ const AddExercise = () => {
                     }
                     className="mt-10"
                   >
-                    <Checkbox>
+                    <Checkbox disabled={isUploading}>
                       <span
                         style={{
                           fontSize: "18px",
@@ -619,9 +686,13 @@ const AddExercise = () => {
               {/* Submit Button */}
               <Form.Item>
                 <div className="p-4 mt-10 text-center mx-auto flex items-center justify-center">
-                  <button className="w-[500px] bg-[#174C6B] text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md ">
+                  <button 
+                    type="submit"
+                    disabled={isUploading}
+                    className={`w-[500px] bg-[#174C6B] text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md ${isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  >
                     <span className="text-white font-semibold">
-                      {isLoading ? <LoadingSpinner color="white" /> : "Create"}
+                      {isUploading ? <LoadingSpinner color="white" /> : "Create"}
                     </span>
                   </button>
                 </div>

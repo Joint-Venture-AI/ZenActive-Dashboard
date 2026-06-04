@@ -10,11 +10,13 @@ import {
   useGetSingleExerciseQuery,
 } from "../../../redux/features/exercise/exerciseApi";
 import LoadingSpinner from "../../../Components/LoadingSpinner";
+import { compressImage } from "../../../utils/imageCompression";
 
 const EditExercise = () => {
   const [form] = Form.useForm();
   const [videoFile, setVideoFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [imageFileName, setImageFileName] = useState("Select an image");
   const [videoFileName, setVideoFileName] = useState("Select a video");
   const [videoResolution, setVideoResolution] = useState(null);
@@ -111,36 +113,47 @@ const EditExercise = () => {
   };
 
   const onFinish = async (values) => {
-    const formattedData = {
-      ...values,
-      points: Number(values.points),
-      duration: Number(values.duration),
-      reps: Number(values.reps),
-      sets: Number(values.sets),
-      restTime: Number(values.restTime),
-    };
-    // Create FormData
-    const formData = new FormData();
-    if (imageFile) {
-      formData.append("image", imageFile);
-    }
-    if (videoFile) {
-      formData.append("media", videoFile);
-    }
-    formData.append("data", JSON.stringify(formattedData)); // Convert text fields to JSON
+    setIsUpdating(true);
+    const loadingMessage = message.loading("Updating exercise... Please wait.", 0);
 
     try {
+      const formattedData = {
+        ...values,
+        points: Number(values.points),
+        duration: Number(values.duration),
+        reps: Number(values.reps),
+        sets: Number(values.sets),
+        restTime: Number(values.restTime),
+      };
+      
+      // Create FormData
+      const formData = new FormData();
+      
+      if (imageFile) {
+        // Compress image before upload
+        const compressedImage = await compressImage(imageFile);
+        formData.append("image", compressedImage);
+      }
+      
+      if (videoFile) {
+        formData.append("media", videoFile);
+      }
+      
+      formData.append("data", JSON.stringify(formattedData)); // Convert text fields to JSON
+
       const response = await editExercise({ exerciseId, formData }).unwrap();
 
       if (response.success) {
-        message.success("exercise edited successfully!");
+        message.success("Exercise edited successfully!");
         form.resetFields(); // Reset form
-        // setFile(null); // Clear file
         navigate(-1);
       }
     } catch (error) {
       console.log(error);
       message.error(error.data?.message || "Failed to edit exercise.");
+    } finally {
+      loadingMessage(); // Dismiss the loading message
+      setIsUpdating(false);
     }
   };
 
@@ -216,6 +229,7 @@ const EditExercise = () => {
                     <Input
                       type="text"
                       placeholder="Enter Exercise Name"
+                      disabled={isUpdating}
                       style={{
                         height: "40px",
                         border: "1px solid #79CDFF",
@@ -249,6 +263,7 @@ const EditExercise = () => {
                     <Input
                       type="text"
                       placeholder="About Exercise"
+                      disabled={isUpdating}
                       style={{
                         height: "40px",
                         border: "1px solid #79CDFF",
@@ -282,6 +297,7 @@ const EditExercise = () => {
                     <Input
                       type="text"
                       placeholder="Enter Exercise Description"
+                      disabled={isUpdating}
                       style={{
                         height: "40px",
                         border: "1px solid #79CDFF",
@@ -302,13 +318,14 @@ const EditExercise = () => {
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}
+                        disabled={isUpdating}
                         className="hidden"
                         style={{ display: "none" }}
                         id="imageUpload"
                       />
                       <label
                         htmlFor="imageUpload"
-                        className="cursor-pointer w-full flex justify-between items-center"
+                        className={`cursor-pointer w-full flex justify-between items-center ${isUpdating ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
                         <span className="text-[#525252] font-semibold">
                           {imageFileName}
@@ -325,13 +342,14 @@ const EditExercise = () => {
                         type="file"
                         accept="video/*"
                         onChange={handleVideoChange}
+                        disabled={isUpdating}
                         className="hidden"
                         id="videoUpload"
                         style={{ display: "none" }}
                       />
                       <label
                         htmlFor="videoUpload"
-                        className="cursor-pointer w-full flex justify-between items-center"
+                        className={`cursor-pointer w-full flex justify-between items-center ${isUpdating ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
                         <span className="text-[#525252] font-semibold">
                           {videoFileName}
@@ -348,13 +366,12 @@ const EditExercise = () => {
                       </p>
                       {needsConversion ? (
                         <p className="text-amber-600">
-                          This video is larger than 720p, please upload a video
-                          in 720p or lower
+                          Note: High-resolution videos (above 720p) take much longer to upload. 
+                          For faster performance, we recommend using 720p.
                         </p>
                       ) : (
-                        // <p className="text-amber-600">This video is larger than 720p and needs to be converted</p>
                         <p className="text-green-600">
-                          This video is in good shape
+                          Video resolution is optimal for fast upload.
                         </p>
                       )}
                     </div>
@@ -392,6 +409,7 @@ const EditExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set duration"
+                        disabled={isUpdating}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -424,6 +442,7 @@ const EditExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set reward point"
+                        disabled={isUpdating}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -456,6 +475,7 @@ const EditExercise = () => {
                       <Input
                         type="text"
                         placeholder="Set goal"
+                        disabled={isUpdating}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -488,6 +508,7 @@ const EditExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set Reps"
+                        disabled={isUpdating}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -520,6 +541,7 @@ const EditExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set sets"
+                        disabled={isUpdating}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -552,6 +574,7 @@ const EditExercise = () => {
                       <Input
                         type="number"
                         placeholder="Set rest time"
+                        disabled={isUpdating}
                         style={{
                           height: "40px",
                           border: "1px solid #79CDFF",
@@ -584,7 +607,7 @@ const EditExercise = () => {
                     }
                     className="mt-10"
                   >
-                    <Checkbox>
+                    <Checkbox disabled={isUpdating}>
                       <span
                         style={{
                           fontSize: "18px",
@@ -604,7 +627,8 @@ const EditExercise = () => {
                 <div className="p-4 mt-10 text-center mx-auto flex items-center justify-center gap-10">
                   <button
                     type="button"
-                    className="w-[500px] border border-[#1E648C]/60 bg-[#EBF8FF] text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md "
+                    disabled={isUpdating || deleteLoading}
+                    className={`w-[500px] border border-[#1E648C]/60 bg-[#EBF8FF] text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md ${(isUpdating || deleteLoading) ? 'opacity-70 cursor-not-allowed' : ''}`}
                     onClick={() => handleDelete()}
                   >
                     <span className="text-[#1E648C] font-semibold">
@@ -617,10 +641,11 @@ const EditExercise = () => {
                   </button>
                   <button
                     type="submit"
-                    className="w-[500px] bg-[#174C6B] text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md "
+                    disabled={isUpdating || editLoading}
+                    className={`w-[500px] bg-[#174C6B] text-white px-10 h-[45px] flex items-center justify-center gap-3 text-lg outline-none rounded-md ${(isUpdating || editLoading) ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
                     <span className="text-white font-semibold">
-                      {editLoading ? (
+                      {isUpdating || editLoading ? (
                         <LoadingSpinner color="white" />
                       ) : (
                         "Update"

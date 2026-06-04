@@ -31,6 +31,12 @@ export const exerciseApi = baseApi
         }),
         providesTags: ["Exercises"],
       }),
+      getCloudinarySignature: builder.query({
+        query: (folder) => ({
+          url: `/exercise/signature?folder=${folder}`,
+          method: "GET",
+        }),
+      }),
       createExercise: builder.mutation({
         query: (exercise) => ({
           url: "/exercise",
@@ -63,4 +69,5 @@ export const {
   useGetSingleExerciseQuery,
   useEditExerciseMutation,
   useDeleteExerciseMutation,
+  useGetCloudinarySignatureQuery,
 } = exerciseApi;
