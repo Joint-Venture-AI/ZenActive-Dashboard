@@ -1,23 +1,21 @@
 import { useNavigate } from "react-router-dom";
 import React, { useState, useRef } from "react";
-import { Form, Input, Button, Space, message } from "antd";
+import { Form, Input, Button, Space, message, Select } from "antd";
 import { FaAngleLeft } from "react-icons/fa6";
 import { CiCamera } from "react-icons/ci";
-import { IoCloseCircle } from "react-icons/io5"; // Close icon
 import {
   useCreateWorkoutPlanMutation,
-  useGetWorkoutPlansQuery,
 } from "../../../redux/features/workoutPlans/workoutPlansApi";
+import { useGetAllWorkoutQuery } from "../../../redux/features/workout/workoutApi";
 import LoadingSpinner from "../../../Components/LoadingSpinner";
 
 const AddWorkoutPlan = () => {
   const [imageFile, setImageFile] = useState(null);
-  const fileInputRef = useRef(null); // Hidden file input reference
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [createWorkoutPlan, { isLoading }] = useCreateWorkoutPlanMutation();
+  const { data: workoutsData, isLoading: isWorkoutsLoading } = useGetAllWorkoutQuery();
 
-  // Handle Image Upload
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file && file.type.startsWith("image/")) {
@@ -43,13 +41,17 @@ const AddWorkoutPlan = () => {
 
       const res = await createWorkoutPlan(formData).unwrap();
       if (res.success) {
-        message.success("Workout plan created successfully with AI!");
+        message.success("Workout plan created successfully!");
         form.resetFields();
         navigate(-1);
       }
     } catch (err) {
       console.log(err);
-      message.error(err?.data?.message || "Failed to create workout plan.");
+      // Check for specific backend error messages (e.g., duration validation)
+      const errorMessage =
+        err?.data?.message ||
+        "An unexpected error occurred while creating the workout plan.";
+      message.error(errorMessage);
     }
   };
 
@@ -232,6 +234,42 @@ const AddWorkoutPlan = () => {
                       placeholder="Enter Duration"
                       className="h-10 border-[#79CDFF] text-base font-semibold text-[#525252]"
                     />
+                  </Form.Item>
+
+                  {/* Manual Workouts (Optional) */}
+                  <Form.Item
+                    label={
+                      <span className="text-lg font-semibold text-[#2D2D2D]">
+                        Manual Workouts (Optional)
+                      </span>
+                    }
+                    name="workouts"
+                    className="responsive-form-item"
+                  >
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      style={{ width: "100%", height: "40px" }}
+                      placeholder="Select workouts"
+                      loading={isWorkoutsLoading}
+                      className="border-[#79CDFF] font-semibold text-[#525252]"
+                      optionLabelProp="label"
+                    >
+                      {workoutsData?.data?.map((workout) => (
+                        <Select.Option 
+                          key={workout._id} 
+                          value={workout._id}
+                          label={`${workout.name} (${workout.exercises?.map(e => e.name).join(', ')})`}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{workout.name}</span>
+                            <span className="text-xs text-gray-500">
+                              {workout.exercises?.map(e => e.name).join(', ')}
+                            </span>
+                          </div>
+                        </Select.Option>
+                      ))}
+                    </Select>
                   </Form.Item>
                 </Space>
               </Space>
