@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Form, Input, Button, Select, Space } from "antd";
+import { Form, Input, Button, Select, Space, App } from "antd";
 const { Option } = Select;
 import { FaAngleLeft } from "react-icons/fa6";
 import { message, Upload } from "antd";
@@ -9,21 +9,12 @@ import { IoVideocamOutline } from "react-icons/io5";
 import { useCreateWorkoutVideoMutation } from "../../../redux/features/workoutVideo/workoutVideoApi";
 import LoadingSpinner from "../../../Components/LoadingSpinner";
 
-const AddWorkoutVideo = () => {
+const AddWorkoutVideoContent = () => {
   const [videoFile, setVideoFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [form] = Form.useForm();
   const [createWorkoutVideo, { isLoading }] = useCreateWorkoutVideoMutation();
-
-  // Handle Video Upload
-  const handleVideoChange = ({ file }) => {
-    setVideoFile(file.originFileObj);
-  };
-
-  // Handle Image Upload
-  const handleImageChange = ({ file }) => {
-    setImageFile(file.originFileObj);
-  };
+  const { message } = App.useApp();
 
   const onFinish = async (values) => {
     // Create FormData
@@ -56,45 +47,35 @@ const AddWorkoutVideo = () => {
   };
 
   const videoUploadProps = {
-    name: "video",
-    action: "https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload",
-    headers: {
-      authorization: "authorization-text",
-    },
     beforeUpload: (file) => {
       const isVideo = file.type.startsWith("video/");
       if (!isVideo) {
         message.error("You can only upload video files!");
       }
-      return isVideo;
+      return false; // Prevent automatic upload
     },
     onChange(info) {
-      if (info.file.status === "done") {
-        message.success(`${info.file.name} video uploaded successfully`);
-      } else if (info.file.status === "error") {
-        message.error(`${info.file.name} video upload failed.`);
+      if (info.file.status === "removed") {
+        setVideoFile(null);
+      } else {
+        setVideoFile(info.file.originFileObj);
       }
     },
   };
 
   const imageUploadProps = {
-    name: "image",
-    action: "https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload",
-    headers: {
-      authorization: "authorization-text",
-    },
     beforeUpload: (file) => {
       const isImage = file.type.startsWith("image/");
       if (!isImage) {
         message.error("You can only upload image files!");
       }
-      return isImage;
+      return false; // Prevent automatic upload
     },
     onChange(info) {
-      if (info.file.status === "done") {
-        message.success(`${info.file.name} image uploaded successfully`);
-      } else if (info.file.status === "error") {
-        message.error(`${info.file.name} image upload failed.`);
+      if (info.file.status === "removed") {
+        setImageFile(null);
+      } else {
+        setImageFile(info.file.originFileObj);
       }
     },
   };
@@ -144,11 +125,10 @@ const AddWorkoutVideo = () => {
                       }
                       name="media"
                       className="responsive-form-item"
-                      // rules={[{ required: true, message: 'Please enter the package amount!' }]}
+                      rules={[{ required: true, message: 'Please upload a video!' }]}
                     >
                       <Upload
                         {...videoUploadProps}
-                        onChange={handleVideoChange}
                         maxCount={1}
                       >
                         <Button
@@ -190,11 +170,10 @@ const AddWorkoutVideo = () => {
                       }
                       name="image"
                       className="responsive-form-item"
-                      // rules={[{ required: true, message: 'Please enter the package amount!' }]}
+                      rules={[{ required: true, message: 'Please upload an image!' }]}
                     >
                       <Upload
                         {...imageUploadProps}
-                        onChange={handleImageChange}
                         maxCount={1}
                       >
                         <Button
@@ -236,6 +215,7 @@ const AddWorkoutVideo = () => {
                       }
                       name="name"
                       className="responsive-form-item-section-2"
+                      rules={[{ required: true, message: 'Please enter the video title!' }]}
                     >
                       <Input
                         type="text"
@@ -274,6 +254,14 @@ const AddWorkoutVideo = () => {
         </div>
       </div>
     </>
+  );
+};
+
+const AddWorkoutVideo = () => {
+  return (
+    <App>
+      <AddWorkoutVideoContent />
+    </App>
   );
 };
 
